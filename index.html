@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>byimad — Applications</title>
+  <meta name="description" content="Les applications d'Imad : Moires, board Azure DevOps pour cérémonies Agile, et Parthenon, client SQL pour AWS Athena.">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: rgba(22, 27, 34, 0.7);
+      --border: #2d333b;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent-moires: #818cf8;
+      --accent-moires-soft: rgba(129, 140, 248, 0.12);
+      --accent-parthenon: #2dd4bf;
+      --accent-parthenon-soft: rgba(45, 212, 191, 0.12);
+      --glow-opacity: 0.14;
+      --demo-bg: #0d1117;
+      --demo-panel: rgba(255, 255, 255, 0.04);
+      --skeleton: rgba(139, 148, 158, 0.28);
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f8fa;
+        --surface: rgba(255, 255, 255, 0.85);
+        --border: #d0d7de;
+        --text: #1f2328;
+        --muted: #57606a;
+        --accent-moires: #5b5bd6;
+        --accent-moires-soft: rgba(91, 91, 214, 0.09);
+        --accent-parthenon: #0f766e;
+        --accent-parthenon-soft: rgba(15, 118, 110, 0.09);
+        --glow-opacity: 0.10;
+        --demo-bg: #eef1f4;
+        --demo-panel: rgba(0, 0, 0, 0.035);
+        --skeleton: rgba(87, 96, 106, 0.22);
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+    /* halos de couleur en arrière-plan (radial-gradient : moins coûteux qu'un blur) */
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      width: 80vmax;
+      height: 80vmax;
+      opacity: var(--glow-opacity);
+      pointer-events: none;
+      z-index: -1;
+    }
+    body::before {
+      background: radial-gradient(circle, var(--accent-moires), transparent 60%);
+      top: -40vmax; left: -30vmax;
+    }
+    body::after {
+      background: radial-gradient(circle, var(--accent-parthenon), transparent 60%);
+      bottom: -40vmax; right: -30vmax;
+    }
+
+    header { text-align: center; margin-bottom: 3rem; animation: rise 0.6s ease both; }
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 3.5rem);
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+    h1 .dot {
+      background: linear-gradient(120deg, var(--accent-moires), var(--accent-parthenon));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    header p { color: var(--muted); margin-top: 0.75rem; font-size: 1.15rem; }
+
+    .apps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 400px));
+      gap: 1.75rem;
+      justify-content: center;
+      width: 100%;
+      max-width: 860px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      animation: rise 0.6s ease both;
+    }
+    .card:nth-child(2) { animation-delay: 0.1s; }
+    .card:hover, .card:focus-visible {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 12px 40px -12px var(--accent);
+      outline: none;
+    }
+    .card.moires { --accent: var(--accent-moires); --accent-soft: var(--accent-moires-soft); }
+    .card.parthenon { --accent: var(--accent-parthenon); --accent-soft: var(--accent-parthenon-soft); }
+
+    /* ---- démo animée en tête de carte ---- */
+    .demo {
+      background: var(--demo-bg);
+      border-bottom: 1px solid var(--border);
+      height: 170px;
+      display: flex;
+      flex-direction: column;
+    }
+    .chrome {
+      display: flex;
+      gap: 5px;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .chrome i {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--skeleton);
+    }
+    /* mini board kanban (Moires) : un ticket s'allume de colonne en colonne */
+    .board {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      padding: 10px 12px 12px;
+      min-height: 0;
+    }
+    .bcol {
+      background: var(--demo-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .bhead { height: 5px; width: 55%; border-radius: 3px; background: var(--muted); opacity: 0.5; flex-shrink: 0; }
+    .chip { height: 15px; border-radius: 4px; background: var(--skeleton); flex-shrink: 0; }
+    .chip.hot { animation: hop 5.4s infinite; }
+    .bcol:nth-child(2) .chip.hot { animation-delay: 1.8s; }
+    .bcol:nth-child(3) .chip.hot { animation-delay: 3.6s; }
+    @keyframes hop {
+      0%, 28% { background: var(--accent-moires); }
+      34%, 100% { background: var(--skeleton); }
+    }
+    /* mini éditeur SQL (Parthenon) : requête tapée puis résultats */
+    .term {
+      flex: 1;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-size: 11px;
+      overflow: hidden;
+    }
+    .query {
+      white-space: nowrap;
+      overflow: hidden;
+      width: 29ch;
+      max-width: 100%;
+      animation: type 5.4s steps(29) infinite;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+    .query .kw { color: var(--accent-parthenon); font-weight: 600; }
+    @keyframes type {
+      0% { width: 0; }
+      35%, 100% { width: 29ch; }
+    }
+    .rows { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+    .rrow { display: flex; gap: 6px; opacity: 0; animation: rowin 5.4s infinite; }
+    .rrow:nth-child(2) { animation-delay: 0.18s; }
+    .rrow:nth-child(3) { animation-delay: 0.36s; }
+    .rrow:nth-child(4) { animation-delay: 0.54s; }
+    .rrow i { height: 9px; border-radius: 3px; background: var(--skeleton); }
+    .rrow i:nth-child(1) { flex: 2; }
+    .rrow i:nth-child(2) { flex: 3; }
+    .rrow i:nth-child(3) { flex: 1.5; }
+    .rrow.thead i { background: var(--accent-parthenon-soft); }
+    @keyframes rowin {
+      0%, 40% { opacity: 0; transform: translateY(4px); }
+      48%, 90% { opacity: 1; transform: none; }
+      97%, 100% { opacity: 0; }
+    }
+
+    /* ---- contenu de carte ---- */
+    .meta { padding: 1.5rem 1.75rem 1.75rem; display: flex; flex-direction: column; flex: 1; }
+    .title-row { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.75rem; }
+    .logo {
+      display: grid;
+      place-items: center;
+      width: 3rem;
+      height: 3rem;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      flex-shrink: 0;
+    }
+    .logo svg { width: 1.9rem; height: 1.9rem; }
+    .card.moires .logo { color: var(--accent-moires); }
+    .meta h2 { font-size: 1.45rem; letter-spacing: -0.01em; }
+    .meta .tagline { color: var(--muted); line-height: 1.6; margin-bottom: 1.4rem; flex-grow: 1; }
+    .meta .url {
+      color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: ui-monospace, "Cascadia Code", monospace;
+    }
+    .url .arrow { display: inline-block; transition: transform 0.2s ease; }
+    .card:hover .url .arrow, .card:focus-visible .url .arrow { transform: translateX(4px); }
+
+    footer { margin-top: 3.5rem; color: var(--muted); font-size: 0.85rem; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      header, .card, .chip.hot, .query, .rrow { animation: none; }
+      .card:hover, .card:focus-visible { transform: none; }
+      .query { width: auto; }
+      .rrow { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>byimad<span class="dot">.net</span></h1>
+    <p>Des outils simples pour le travail de tous les jours.</p>
+  </header>
+
+  <main class="apps">
+    <a class="card moires" href="https://moires.byimad.net">
+      <div class="demo" aria-hidden="true">
+        <div class="chrome"><i></i><i></i><i></i></div>
+        <div class="board">
+          <div class="bcol">
+            <div class="bhead"></div>
+            <div class="chip"></div>
+            <div class="chip hot"></div>
+            <div class="chip"></div>
+          </div>
+          <div class="bcol">
+            <div class="bhead"></div>
+            <div class="chip"></div>
+            <div class="chip hot"></div>
+          </div>
+          <div class="bcol">
+            <div class="bhead"></div>
+            <div class="chip hot"></div>
+            <div class="chip"></div>
+          </div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="title-row">
+          <span class="logo">
+            <!-- triquetra : les trois Moires tissant le fil -->
+            <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+              <g stroke="currentColor" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+                <path d="M50 16 A34 34 0 0 1 79.44 67 A34 34 0 0 1 50 16 Z"/>
+                <path d="M79.44 67 A34 34 0 0 1 20.56 67 A34 34 0 0 1 79.44 67 Z"/>
+                <path d="M20.56 67 A34 34 0 0 1 50 16 A34 34 0 0 1 20.56 67 Z"/>
+                <circle cx="50" cy="50" r="4.5" fill="currentColor" stroke="none"/>
+              </g>
+            </svg>
+          </span>
+          <h2>Moires</h2>
+        </div>
+        <p class="tagline">Board Azure DevOps optimisé pour les cérémonies Agile : daily, refinement, rétro.</p>
+        <span class="url">moires.byimad.net <span class="arrow">→</span></span>
+      </div>
+    </a>
+
+    <a class="card parthenon" href="https://parthenon.byimad.net">
+      <div class="demo" aria-hidden="true">
+        <div class="chrome"><i></i><i></i><i></i></div>
+        <div class="term">
+          <div class="query"><span class="kw">SELECT</span> * <span class="kw">FROM</span> ventes <span class="kw">LIMIT</span> 10;</div>
+          <div class="rows">
+            <div class="rrow thead"><i></i><i></i><i></i></div>
+            <div class="rrow"><i></i><i></i><i></i></div>
+            <div class="rrow"><i></i><i></i><i></i></div>
+            <div class="rrow"><i></i><i></i><i></i></div>
+          </div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="title-row">
+          <span class="logo">
+            <!-- temple du Parthénon, repris de l'icône de l'app -->
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="76" cy="22" r="14" fill="#f7c948"/>
+              <polygon points="50,7 96,33 4,33" fill="#1a5276"/>
+              <rect x="12" y="38" width="76" height="9" rx="2" fill="#1a5276"/>
+              <rect x="17" y="52" width="9" height="26" rx="1.5" fill="#2ab7a9"/>
+              <rect x="31.5" y="52" width="9" height="26" rx="1.5" fill="#2ab7a9"/>
+              <rect x="46" y="52" width="9" height="26" rx="1.5" fill="#2ab7a9"/>
+              <rect x="60.5" y="52" width="9" height="26" rx="1.5" fill="#2ab7a9"/>
+              <rect x="75" y="52" width="9" height="26" rx="1.5" fill="#2ab7a9"/>
+              <rect x="12" y="82" width="76" height="7" rx="2" fill="#1a5276"/>
+              <rect x="7" y="91" width="86" height="6" rx="2" fill="#1a5276"/>
+            </svg>
+          </span>
+          <h2>Parthenon</h2>
+        </div>
+        <p class="tagline">Client SQL pour AWS Athena : requêtez, explorez et exportez vos données.</p>
+        <span class="url">parthenon.byimad.net <span class="arrow">→</span></span>
+      </div>
+    </a>
+  </main>
+
+  <footer>© 2026 Imad — byimad.net</footer>
+</body>
+</html>

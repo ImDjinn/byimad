@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parthenon — Client SQL pour AWS Athena</title>
+  <meta name="description" content="Parthenon : client SQL desktop moderne pour AWS Athena. Éditeur Monaco, explorateur de bases, multi-onglets. Windows, macOS, Linux.">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #2d333b;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #60a5fa;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f8fa;
+        --surface: #ffffff;
+        --border: #d0d7de;
+        --text: #1f2328;
+        --muted: #57606a;
+        --accent: #2563eb;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1rem;
+    }
+    .back {
+      align-self: flex-start;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto 2.5rem;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back:hover { color: var(--accent); }
+    header { text-align: center; margin-bottom: 2.5rem; }
+    .icon { font-size: 3.5rem; }
+    h1 { font-size: 2.5rem; letter-spacing: -0.02em; margin-top: 0.5rem; }
+    header p { color: var(--muted); margin-top: 0.5rem; font-size: 1.15rem; max-width: 520px; }
+    .download {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.05rem;
+      padding: 0.85rem 2rem;
+      border-radius: 10px;
+      margin-bottom: 0.75rem;
+      transition: opacity 0.15s ease;
+    }
+    .download:hover { opacity: 0.85; }
+    .downloads { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+    .download.secondary { background: var(--surface); color: var(--accent); border: 1px solid var(--border); }
+    .platforms { color: var(--muted); font-size: 0.85rem; text-align: center; margin-bottom: 3rem; min-height: 1.2em; }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
+      gap: 1rem;
+      justify-content: center;
+      width: 100%;
+      max-width: 720px;
+    }
+    .feature {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+    }
+    .feature h2 { font-size: 1rem; margin-bottom: 0.25rem; }
+    .feature p { color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
+    footer { margin-top: 3.5rem; color: var(--muted); font-size: 0.85rem; }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <a class="back" href="https://byimad.net">← byimad.net</a>
+
+  <header>
+    <div class="icon">🏛️</div>
+    <h1>Parthenon</h1>
+    <p>Client SQL desktop moderne pour AWS Athena, inspiré de SSMS. Requêtez, explorez et exportez vos données.</p>
+  </header>
+
+  <div class="downloads" id="downloads">
+    <a class="download" id="dl-win" href="releases/">⬇ Télécharger pour Windows</a>
+    <a class="download secondary" id="dl-mac" href="releases/" hidden>⬇ macOS (.dmg)</a>
+  </div>
+  <p class="platforms" id="version"></p>
+
+  <script>
+    // Liens directs depuis les manifestes electron-updater servis à côté des
+    // installeurs. En cas d'échec (pas encore de release), le lien retombe
+    // sur le listing releases/.
+    function grab(url, done) {
+      fetch(url).then(r => r.ok ? r.text() : Promise.reject()).then(done).catch(() => {});
+    }
+    grab('releases/latest.yml', yml => {
+      const version = (yml.match(/^version:\s*(.+)$/m) || [])[1];
+      const path = (yml.match(/^path:\s*(.+)$/m) || [])[1];
+      if (path) document.getElementById('dl-win').href = 'releases/' + path.trim();
+      if (version) document.getElementById('version').textContent = 'Version ' + version.trim();
+    });
+    grab('releases/latest-mac.yml', yml => {
+      const dmg = (yml.match(/url:\s*(\S+\.dmg)/) || [])[1];
+      if (dmg) {
+        const link = document.getElementById('dl-mac');
+        link.href = 'releases/' + dmg;
+        link.hidden = false;
+      }
+    });
+  </script>
+
+  <main class="features">
+    <div class="feature">
+      <h2>🎨 Éditeur SQL moderne</h2>
+      <p>Monaco Editor (le moteur de VS Code) : coloration syntaxique et IntelliSense.</p>
+    </div>
+    <div class="feature">
+      <h2>🗄️ Explorateur de bases</h2>
+      <p>Parcourez bases, tables, colonnes et schémas Athena en un clic.</p>
+    </div>
+    <div class="feature">
+      <h2>📊 Grille de résultats</h2>
+      <p>Affichage haute performance des résultats avec mise à jour temps réel.</p>
+    </div>
+    <div class="feature">
+      <h2>🔐 Authentification flexible</h2>
+      <p>OKTA, profil AWS, clés d'accès ou SSO — connectez-vous comme vous voulez.</p>
+    </div>
+    <div class="feature">
+      <h2>📝 Multi-onglets</h2>
+      <p>Travaillez sur plusieurs requêtes en parallèle, avec vue partagée.</p>
+    </div>
+    <div class="feature">
+      <h2>💾 Gestion des serveurs</h2>
+      <p>Organisez vos connexions par dossiers, persistées entre les sessions.</p>
+    </div>
+  </main>
+
+  <footer>MIT License — <a href="https://byimad.net">byimad.net</a></footer>
+</body>
+</html>
