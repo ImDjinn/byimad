@@ -1,0 +1,30 @@
+# Stack autonome du portail byimad.net.
+#
+# Sert la landing (index.html) et la page de présentation Parthenon
+# (parthenon/index.html), en HTTP interne uniquement : l'edge proxy (voir
+# ./proxy) termine le TLS et route les domaines vers ce conteneur via le
+# réseau partagé `web`.
+#
+# Prérequis (une fois) :
+#   docker network create web
+#
+# Démarrer :
+#   docker compose up -d
+#
+# Mettre à jour le contenu : `git pull` suffit (fichiers montés en volume).
+services:
+  site:
+    image: caddy:2-alpine
+    container_name: byimad-site
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # On ne monte que le contenu public : pas le .git ni les fichiers d'infra.
+      - ./index.html:/srv/index.html:ro
+      - ./parthenon:/srv/parthenon:ro
+    networks:
+      - web
+
+networks:
+  web:
+    external: true

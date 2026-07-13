@@ -1,0 +1,37 @@
+# Edge reverse-proxy partagé.
+#
+# C'est le SEUL service qui écoute sur 80/443 sur le VPS. Il termine le TLS
+# (Let's Encrypt, automatique) et route chaque domaine vers le conteneur de
+# l'application correspondante, joint au réseau Docker partagé `web`. Chaque
+# application (byimad, Moires, …) reste un stack autonome derrière cet edge.
+#
+# Prérequis (une fois) :
+#   docker network create web
+#
+# Démarrer :
+#   docker compose -f proxy/docker-compose.yml up -d
+services:
+  edge:
+    image: caddy:2-alpine
+    container_name: edge
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Releases Parthenon (installeurs + manifestes latest.yml) : le dossier est
+      # rempli par la CI Parthenon (scp). Voir le repo Parthenon.
+      - /opt/parthenon-releases:/srv/parthenon-releases:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - web
+
+networks:
+  web:
+    external: true
+
+volumes:
+  caddy_data:
+  caddy_config:

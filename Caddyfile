@@ -1,0 +1,27 @@
+# Conteneur byimad-site : derrière l'edge proxy (TLS terminé en amont), HTTP
+# interne only. Sert la landing byimad.net et la page de présentation Parthenon,
+# routées par Host (le Host est préservé par l'edge). Les binaires
+# parthenon.byimad.net/releases/* sont servis par l'edge, pas ici.
+:80 {
+	encode gzip zstd
+
+	# Landing byimad.net (et www, redirigé au niveau de l'edge).
+	@byimad host byimad.net www.byimad.net
+	handle @byimad {
+		root * /srv
+		file_server
+	}
+
+	# Page de présentation Parthenon.
+	@parthenon host parthenon.byimad.net
+	handle @parthenon {
+		root * /srv/parthenon
+		file_server
+	}
+
+	# Défaut (accès interne direct) : landing.
+	handle {
+		root * /srv
+		file_server
+	}
+}

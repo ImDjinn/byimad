@@ -1,0 +1,53 @@
+# Edge proxy : TLS automatique + routage par domaine vers les stacks autonomes.
+# Chaque upstream est un conteneur joint au réseau `web` (résolution par nom).
+
+# En-têtes de sécurité communs aux sites statiques servis via cet edge.
+(secure) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+# Portail byimad.net → conteneur byimad-site (stack ./.. autonome).
+byimad.net {
+	encode gzip zstd
+	import secure
+	reverse_proxy byimad-site:80
+}
+
+www.byimad.net {
+	redir https://byimad.net{uri} permanent
+}
+
+# Application Moires → son propre conteneur. Le routing interne (SPA + API +
+# WebSocket) est entièrement géré par le Caddy du stack Moires ; on lui passe
+# simplement le trafic en préservant le Host.
+moires.byimad.net, themoirai.net {
+	reverse_proxy moires-web:80
+}
+
+# Parthenon (app desktop) : la page de présentation vient du conteneur byimad
+# (page d'info gérée par byimad), les binaires viennent des releases
+# auto-hébergées, remplies par la CI Parthenon.
+parthenon.byimad.net {
+	encode gzip zstd
+	import secure
+
+	# Installeurs + manifestes electron-updater. Pas de cache sur les *.yml :
+	# l'auto-updater doit toujours voir la dernière version.
+	handle_path /releases/* {
+		root * /srv/parthenon-releases
+		@manifests path *.yml
+		header @manifests Cache-Control "no-cache"
+		file_server browse
+	}
+
+	# Tout le reste : page de présentation servie par byimad-site (host préservé).
+	handle {
+		reverse_proxy byimad-site:80
+	}
+}
