@@ -22,6 +22,14 @@ services:
       # On ne monte que le contenu public : pas le .git ni les fichiers d'infra.
       - ./index.html:/srv/index.html:ro
       - ./parthenon:/srv/parthenon:ro
+    # wget vient de busybox (image alpine). L'edge ne route pas vers un
+    # conteneur non « healthy » au démarrage.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
       - web
 

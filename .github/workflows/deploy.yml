@@ -1,0 +1,39 @@
+# Déploie le portail byimad (edge + site) sur le VPS via SSH à chaque push main.
+# Convention de secrets alignée sur le repo Parthenon : VPS_HOST, VPS_USER,
+# VPS_SSH_KEY, VPS_PORT (optionnel, défaut 22). Voir DEPLOY.md §6.
+name: Deploy portail byimad
+
+on:
+  push:
+    branches: [main]
+    # Les changements purement documentaires ne redéploient rien.
+    paths-ignore:
+      - "DEPLOY.md"
+      - "README.md"
+
+concurrency:
+  group: deploy-byimad
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH deploy
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/vps_key
+          chmod 600 ~/.ssh/vps_key
+          # accept-new : TOFU comme Parthenon. Pour durcir, remplacer par un
+          # secret VPS_KNOWN_HOSTS (sortie de `ssh-keyscan -H IP`) copié dans
+          # ~/.ssh/known_hosts et retirer l'option ci-dessous.
+          ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=accept-new \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'set -e; \
+            cd ~/byimad && git pull --ff-only && \
+            docker compose -f proxy/docker-compose.yml up -d && \
+            docker compose up -d'

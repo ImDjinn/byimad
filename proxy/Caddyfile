@@ -43,7 +43,9 @@ parthenon.byimad.net {
 		root * /srv/parthenon-releases
 		@manifests path *.yml
 		header @manifests Cache-Control "no-cache"
-		file_server browse
+		# Pas de `browse` : l'auto-updater lit latest.yml par chemin direct,
+		# inutile d'exposer le listing du dossier publiquement.
+		file_server
 	}
 
 	# Tout le reste : page de présentation servie par byimad-site (host préservé).
