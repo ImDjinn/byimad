@@ -32,8 +32,11 @@ jobs:
           # accept-new : TOFU comme Parthenon. Pour durcir, remplacer par un
           # secret VPS_KNOWN_HOSTS (sortie de `ssh-keyscan -H IP`) copié dans
           # ~/.ssh/known_hosts et retirer l'option ci-dessous.
+          # `up -d` ne recharge pas Caddy quand seul le Caddyfile change (le
+          # conteneur tourne déjà) : le reload explicite s'en charge.
           ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=accept-new \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'set -e; \
             cd ~/byimad && git pull --ff-only && \
             docker compose -f proxy/docker-compose.yml up -d && \
-            docker compose up -d'
+            docker compose up -d && \
+            docker exec -w /etc/caddy edge caddy reload'

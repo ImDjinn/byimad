@@ -19,7 +19,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Répertoire entier, pas le fichier seul : un `git pull` remplace le
+      # Caddyfile par un NOUVEL inode, et un bind-mount de fichier resterait
+      # accroché à l'ancien — les changements ne seraient jamais vus.
+      - .:/etc/caddy:ro
       # Releases Parthenon (installeurs + manifestes latest.yml) : dossiers
       # remplis par la CI Parthenon (scp). Voir le repo Parthenon
       # (docs/RELEASE_VARIANTS.md). releases-al = canal AL protégé (Basic auth).
