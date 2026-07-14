@@ -20,9 +20,11 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      # Releases Parthenon (installeurs + manifestes latest.yml) : le dossier est
-      # rempli par la CI Parthenon (scp). Voir le repo Parthenon.
+      # Releases Parthenon (installeurs + manifestes latest.yml) : dossiers
+      # remplis par la CI Parthenon (scp). Voir le repo Parthenon
+      # (docs/RELEASE_VARIANTS.md). releases-al = canal AL protégé (Basic auth).
       - /opt/parthenon-releases:/srv/parthenon-releases:ro
+      - /opt/parthenon-releases-al:/srv/parthenon-releases-al:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:

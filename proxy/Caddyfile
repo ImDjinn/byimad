@@ -37,6 +37,19 @@ parthenon.byimad.net {
 	encode gzip zstd
 	import secure
 
+	# Canal AL (build avec OKTA Air Liquide) : mêmes règles que /releases mais
+	# protégé par Basic auth. Le hash est celui du couple envoyé par
+	# electron-updater (requestHeaders de update-config.al.json, repo Parthenon).
+	handle_path /releases-al/* {
+		basic_auth {
+			parthenon $2a$14$CbAt/PvH2jtd1365JCCzc.cy2nvg7WLU/R7zl.OWqgmYfMolOWTEC
+		}
+		root * /srv/parthenon-releases-al
+		@manifests-al path *.yml
+		header @manifests-al Cache-Control "no-cache"
+		file_server
+	}
+
 	# Installeurs + manifestes electron-updater. Pas de cache sur les *.yml :
 	# l'auto-updater doit toujours voir la dernière version.
 	handle_path /releases/* {
