@@ -144,6 +144,11 @@
     function grab(url, done) {
       fetch(url).then(r => r.ok ? r.text() : Promise.reject()).then(done).catch(() => {});
     }
+    function show(id, href) {
+      const link = document.getElementById(id);
+      link.href = href;
+      link.hidden = false;
+    }
     grab('releases/latest.yml', yml => {
       const version = (yml.match(/^version:\s*(.+)$/m) || [])[1];
       const path = (yml.match(/^path:\s*(.+)$/m) || [])[1];
@@ -151,20 +156,11 @@
       if (version) {
         const v = version.trim();
         document.getElementById('version').textContent = 'Version ' + v;
-        const alWin = document.getElementById('al-win');
-        alWin.href = 'releases-al/Parthenon.Setup.' + v + '-al.exe';
-        alWin.hidden = false;
-        const alMac = document.getElementById('al-mac');
-        alMac.href = 'releases-al/Parthenon-' + v + '-al.dmg';
-        alMac.hidden = false;
-      }
-    });
-    grab('releases/latest-mac.yml', yml => {
-      const dmg = (yml.match(/url:\s*(\S+\.dmg)/) || [])[1];
-      if (dmg) {
-        const link = document.getElementById('pub-mac');
-        link.href = 'releases/' + dmg;
-        link.hidden = false;
+        // Les .dmg ne figurent pas dans latest-mac.yml (writeUpdateInfo: false) :
+        // les noms suivent les artifactName de la CI Parthenon.
+        show('pub-mac', 'releases/Parthenon-' + v + '.dmg');
+        show('al-win', 'releases-al/Parthenon.Setup.' + v + '-al.exe');
+        show('al-mac', 'releases-al/Parthenon-' + v + '-al.dmg');
       }
     });
   </script>
