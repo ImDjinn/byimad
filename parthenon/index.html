@@ -84,6 +84,17 @@
     .channel h2 { font-size: 1.05rem; margin-bottom: 0.35rem; }
     .channel > p { color: var(--muted); font-size: 0.85rem; line-height: 1.45; margin-bottom: 1rem; min-height: 3.8em; }
     .channel .download { font-size: 0.95rem; padding: 0.7rem 1.4rem; margin-bottom: 0; }
+    .channel input {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      margin-bottom: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    .channel input:focus { outline: 2px solid var(--accent); border-color: transparent; }
     .platforms { color: var(--muted); font-size: 0.85rem; text-align: center; margin-bottom: 3rem; min-height: 1.2em; }
     .features {
       display: grid;
@@ -125,7 +136,8 @@
     </section>
     <section class="channel">
       <h2>🔒 Version Air Liquide</h2>
-      <p>Intègre l'authentification OKTA Initiative. Accès restreint : un identifiant et un mot de passe vous seront demandés au téléchargement.</p>
+      <p>Intègre l'authentification OKTA Initiative. Accès restreint : entrez le mot de passe qui vous a été communiqué.</p>
+      <input type="password" id="al-pass" placeholder="Mot de passe" autocomplete="off">
       <div class="downloads">
         <a class="download" id="al-win" href="releases-al/" hidden>⬇ Windows</a>
         <a class="download secondary" id="al-mac" href="releases-al/" hidden>⬇ macOS</a>
@@ -136,11 +148,11 @@
 
   <script>
     // Liens directs depuis les manifestes electron-updater du canal public.
-    // Le canal AL est protégé par Basic auth : impossible de lire son manifeste
-    // sans déclencher la boîte de connexion, mais les deux canaux partagent le
-    // même numéro de version (même tag CI) et les artefacts AL sont simplement
-    // suffixés « -al » — on construit donc les liens AL à partir de la version
-    // publique. Le navigateur demandera les identifiants au clic.
+    // Le canal AL est protégé (mot de passe) : impossible de lire son manifeste,
+    // mais les deux canaux partagent le même numéro de version (même tag CI) et
+    // les artefacts AL sont simplement suffixés « -al » — on construit donc les
+    // liens AL à partir de la version publique. Le mot de passe saisi est ajouté
+    // en ?key= au moment du clic ; c'est Caddy qui le vérifie côté serveur.
     function grab(url, done) {
       fetch(url).then(r => r.ok ? r.text() : Promise.reject()).then(done).catch(() => {});
     }
@@ -162,6 +174,20 @@
         show('al-win', 'releases-al/Parthenon.Setup.' + v + '-al.exe');
         show('al-mac', 'releases-al/Parthenon-' + v + '-al.dmg');
       }
+    });
+    // Canal AL : le mot de passe est exigé côté serveur (?key=). Sans saisie,
+    // on bloque le clic et on met le champ en évidence.
+    ['al-win', 'al-mac'].forEach(id => {
+      const link = document.getElementById(id);
+      link.addEventListener('click', e => {
+        const pass = document.getElementById('al-pass').value.trim();
+        if (!pass) {
+          e.preventDefault();
+          document.getElementById('al-pass').focus();
+          return;
+        }
+        link.href = link.href.split('?')[0] + '?key=' + encodeURIComponent(pass);
+      });
     });
   </script>
 

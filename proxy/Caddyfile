@@ -38,12 +38,19 @@ parthenon.byimad.net {
 	import secure
 
 	# Canal AL (build avec OKTA Air Liquide) : mêmes règles que /releases mais
-	# protégé par Basic auth. Le hash est celui du couple envoyé par
-	# electron-updater (requestHeaders de update-config.al.json, repo Parthenon).
+	# accès restreint. Deux laissez-passer, sinon 401 :
+	#   - ?key=…  : mot de passe partageable, saisi sur la page de présentation ;
+	#   - header  : Authorization embarqué dans le build AL (requestHeaders de
+	#     update-config.al.json, repo Parthenon) pour l'auto-update silencieux.
+	#     NE PAS retirer tant que des builds AL avec ce header circulent.
+	# Volontairement pas de basic_auth : le navigateur imposerait un couple
+	# utilisateur+mot de passe, on ne veut qu'un mot de passe.
 	handle_path /releases-al/* {
-		basic_auth {
-			parthenon $2a$14$CbAt/PvH2jtd1365JCCzc.cy2nvg7WLU/R7zl.OWqgmYfMolOWTEC
+		@denied {
+			not query key=Parth3non!R3l3asE123
+			not header Authorization "Basic cGFydGhlbm9uOkF6RXJ0eTEyM1BhcnRoRW5vbiE="
 		}
+		respond @denied "Accès restreint : mot de passe manquant ou invalide." 401
 		root * /srv/parthenon-releases-al
 		@manifests-al path *.yml
 		header @manifests-al Cache-Control "no-cache"
