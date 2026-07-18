@@ -11,10 +11,14 @@
             "id": "1de41101b6d0a7d4",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "content/index.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "Nouvel onglet"
+              "title": "index"
             }
           }
         ]
@@ -176,11 +180,12 @@
       "bases:Créer une nouvelle base": false
     }
   },
-  "active": "7fec219a9d7cddf8",
+  "active": "1de41101b6d0a7d4",
   "lastOpenFiles": [
+    "content/guide-ecriture.md",
+    "content/index.md",
     "README.md",
     "README.md.tmp.35112.95d733be90f3",
-    "content/guide-ecriture.md",
     "content/guide-ecriture.md.tmp.35112.1c93fc07d8c2"
   ]
 }
