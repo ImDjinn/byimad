@@ -37,9 +37,14 @@ jobs:
           # ~/.ssh/known_hosts et retirer l'option ci-dessous.
           # `up -d` ne recharge pas Caddy quand seul le Caddyfile change (le
           # conteneur tourne déjà) : le reload explicite s'en charge.
+          # --force-recreate sur le portail : index.html est monté en FICHIER
+          # seul, or `git pull` le remplace par un nouvel inode auquel le
+          # bind-mount reste accroché — seule la recréation du conteneur
+          # remonte le bon fichier. Pas sur l'edge (coupure TLS inutile) :
+          # son Caddyfile est monté en répertoire + reload explicite.
           ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=accept-new \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'set -e; \
             cd ~/byimad && git pull --ff-only && \
             docker compose -f proxy/docker-compose.yml up -d && \
-            docker compose up -d && \
+            docker compose up -d --force-recreate && \
             docker exec -w /etc/caddy edge caddy reload'

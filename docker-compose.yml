@@ -11,7 +11,11 @@
 # Démarrer :
 #   docker compose up -d
 #
-# Mettre à jour le contenu : `git pull` suffit (fichiers montés en volume).
+# Mettre à jour le contenu : `git pull` PUIS `docker compose up -d
+# --force-recreate` (deploy.yml s'en charge). Le pull remplace index.html par
+# un nouvel inode : le bind-mount de FICHIER reste accroché à l'ancien tant
+# que le conteneur n'est pas recréé (./parthenon, monté en répertoire, ne
+# souffre pas de ce problème).
 services:
   site:
     image: caddy:2-alpine
