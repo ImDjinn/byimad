@@ -1,0 +1,27 @@
+@use "./base.scss";
+
+// Intégration byimad : halos radiaux discrets en fond, comme sur la landing
+// (index.html du repo). Les variables --secondary/--tertiary viennent du
+// thème défini dans quartz.config.ts.
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  width: 80vmax;
+  height: 80vmax;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::before {
+  background: radial-gradient(circle, var(--secondary), transparent 60%);
+  top: -40vmax;
+  left: -30vmax;
+}
+
+body::after {
+  background: radial-gradient(circle, var(--tertiary), transparent 60%);
+  bottom: -40vmax;
+  right: -30vmax;
+}

@@ -28,6 +28,8 @@ services:
       # (docs/RELEASE_VARIANTS.md). releases-al = canal AL protégé (Basic auth).
       - /opt/parthenon-releases:/srv/parthenon-releases:ro
       - /opt/parthenon-releases-al:/srv/parthenon-releases-al:ro
+      # Wiki Agora (build Quartz) : rempli par la CI byimad (agora.yml, rsync).
+      - /opt/agora-site:/srv/agora-site:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:

@@ -6,10 +6,13 @@ name: Deploy portail byimad
 on:
   push:
     branches: [main]
-    # Les changements purement documentaires ne redéploient rien.
+    # Les changements purement documentaires ne redéploient rien, et le
+    # contenu Agora a son propre workflow (agora.yml).
     paths-ignore:
       - "DEPLOY.md"
       - "README.md"
+      - "agora/**"
+      - ".github/workflows/agora.yml"
 
 concurrency:
   group: deploy-byimad

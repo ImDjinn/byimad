@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>byimad — Applications</title>
-  <meta name="description" content="Les applications d'Imad : Moires, board Azure DevOps pour cérémonies Agile, et Parthenon, client SQL pour AWS Athena.">
+  <meta name="description" content="Les applications d'Imad : Moires, board Azure DevOps pour cérémonies Agile, Parthenon, client SQL pour AWS Athena, et Agora, wiki de cours et tutoriels.">
   <style>
     :root {
       --bg: #0b0e14;
@@ -16,6 +16,8 @@
       --accent-moires-soft: rgba(129, 140, 248, 0.12);
       --accent-parthenon: #2dd4bf;
       --accent-parthenon-soft: rgba(45, 212, 191, 0.12);
+      --accent-agora: #f7c948;
+      --accent-agora-soft: rgba(247, 201, 72, 0.12);
       --glow-opacity: 0.14;
       --demo-bg: #0d1117;
       --demo-panel: rgba(255, 255, 255, 0.04);
@@ -32,6 +34,8 @@
         --accent-moires-soft: rgba(91, 91, 214, 0.09);
         --accent-parthenon: #0f766e;
         --accent-parthenon-soft: rgba(15, 118, 110, 0.09);
+        --accent-agora: #9a6700;
+        --accent-agora-soft: rgba(154, 103, 0, 0.09);
         --glow-opacity: 0.10;
         --demo-bg: #eef1f4;
         --demo-panel: rgba(0, 0, 0, 0.035);
@@ -91,7 +95,7 @@
       gap: 1.75rem;
       justify-content: center;
       width: 100%;
-      max-width: 860px;
+      max-width: 1260px;
     }
     .card {
       display: flex;
@@ -107,6 +111,7 @@
       animation: rise 0.6s ease both;
     }
     .card:nth-child(2) { animation-delay: 0.1s; }
+    .card:nth-child(3) { animation-delay: 0.2s; }
     .card:hover, .card:focus-visible {
       transform: translateY(-4px);
       border-color: var(--accent);
@@ -115,6 +120,7 @@
     }
     .card.moires { --accent: var(--accent-moires); --accent-soft: var(--accent-moires-soft); }
     .card.parthenon { --accent: var(--accent-parthenon); --accent-soft: var(--accent-parthenon-soft); }
+    .card.agora { --accent: var(--accent-agora); --accent-soft: var(--accent-agora-soft); }
 
     /* ---- démo animée en tête de carte ---- */
     .demo {
@@ -205,6 +211,47 @@
       48%, 90% { opacity: 1; transform: none; }
       97%, 100% { opacity: 0; }
     }
+    /* mini note (Agora) : le texte s'écrit, puis un bloc de code apparaît */
+    .page {
+      flex: 1;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .pline {
+      height: 9px;
+      border-radius: 3px;
+      background: var(--skeleton);
+      transform-origin: left;
+      animation: write 5.4s ease infinite backwards;
+      flex-shrink: 0;
+    }
+    .pline.title { height: 12px; width: 45%; background: var(--accent-agora); opacity: 0.75; }
+    .pline.w90 { width: 90%; animation-delay: 0.25s; }
+    .pline.w75 { width: 75%; animation-delay: 0.5s; }
+    @keyframes write {
+      0% { transform: scaleX(0); }
+      16%, 88% { transform: scaleX(1); }
+      96%, 100% { transform: scaleX(0); }
+    }
+    .pcode {
+      background: var(--demo-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 2px;
+      opacity: 0;
+      animation: rowin 5.4s infinite;
+    }
+    .pcode i { height: 8px; border-radius: 3px; background: var(--skeleton); }
+    .pcode i:nth-child(1) { width: 62%; background: var(--accent-agora-soft); }
+    .pcode i:nth-child(2) { width: 80%; }
+    .pcode i:nth-child(3) { width: 45%; }
 
     /* ---- contenu de carte ---- */
     .meta { padding: 1.5rem 1.75rem 1.75rem; display: flex; flex-direction: column; flex: 1; }
@@ -220,6 +267,7 @@
     }
     .logo svg { width: 1.9rem; height: 1.9rem; }
     .card.moires .logo { color: var(--accent-moires); }
+    .card.agora .logo { color: var(--accent-agora); }
     .meta h2 { font-size: 1.45rem; letter-spacing: -0.01em; }
     .meta .tagline { color: var(--muted); line-height: 1.6; margin-bottom: 1.4rem; flex-grow: 1; }
     .meta .url {
@@ -238,10 +286,10 @@
       to { opacity: 1; transform: translateY(0); }
     }
     @media (prefers-reduced-motion: reduce) {
-      header, .card, .chip.hot, .query, .rrow { animation: none; }
+      header, .card, .chip.hot, .query, .rrow, .pline, .pcode { animation: none; }
       .card:hover, .card:focus-visible { transform: none; }
       .query { width: auto; }
-      .rrow { opacity: 1; }
+      .rrow, .pcode { opacity: 1; }
     }
   </style>
 </head>
@@ -328,6 +376,34 @@
         </div>
         <p class="tagline">Client SQL pour AWS Athena : requêtez, explorez et exportez vos données.</p>
         <span class="url">parthenon.byimad.net <span class="arrow">→</span></span>
+      </div>
+    </a>
+
+    <a class="card agora" href="https://agora.byimad.net">
+      <div class="demo" aria-hidden="true">
+        <div class="chrome"><i></i><i></i><i></i></div>
+        <div class="page">
+          <div class="pline title"></div>
+          <div class="pline w90"></div>
+          <div class="pline w75"></div>
+          <div class="pcode"><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="title-row">
+          <span class="logo">
+            <!-- livre ouvert : l'agora, place des savoirs partagés -->
+            <svg viewBox="0 0 100 100" fill="none" aria-hidden="true">
+              <g stroke="currentColor" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+                <path d="M50 27 C 42 19, 25 17, 13 21 V 73 C 25 69, 42 71, 50 79 C 58 71, 75 69, 87 73 V 21 C 75 17, 58 19, 50 27 Z"/>
+                <path d="M50 27 V 79"/>
+              </g>
+            </svg>
+          </span>
+          <h2>Agora</h2>
+        </div>
+        <p class="tagline">Cours, tutoriels et concepts : un wiki public qui grandit note après note.</p>
+        <span class="url">agora.byimad.net <span class="arrow">→</span></span>
       </div>
     </a>
   </main>

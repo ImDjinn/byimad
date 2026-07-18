@@ -20,6 +20,7 @@ route chaque domaine vers le conteneur de l'app, sur un réseau Docker partagé
 |---------|-----------|---------|
 | `byimad.net` | `byimad-site` | Landing (liens vers les apps) |
 | `parthenon.byimad.net` | `byimad-site` + edge | Page de présentation + `/releases/` |
+| `agora.byimad.net` | edge | Wiki Agora (notes Obsidian → build Quartz, `/opt/agora-site`) |
 | `moires.byimad.net`, `themoirai.net` | `moires-web` (repo Moires) | L'app Moires |
 
 Chaque app tourne dans un stack autonome (conteneurs découplés). Le **routing**
@@ -27,7 +28,8 @@ reste centralisé ici, dans `proxy/Caddyfile` : ajouter un domaine ou une app
 implique d'éditer ce fichier et de redéployer l'edge.
 
 - **byimad** : ce repo. Publie la landing, **la page d'info Parthenon**
-  (`parthenon/index.html`) et possède l'edge + le routing de toutes les apps.
+  (`parthenon/index.html`), **le wiki Agora** (`agora/`, voir son README) et
+  possède l'edge + le routing de toutes les apps.
 - **Moires** : publie l'app (`moires.byimad.net`) depuis son propre stack ; son
   domaine est déclaré dans l'edge ci-contre.
 - **Parthenon** : publie ses releases (GitHub + `parthenon.byimad.net/releases/`)
@@ -44,6 +46,7 @@ byimad.net            A  IP_DU_VPS
 www.byimad.net        A  IP_DU_VPS
 moires.byimad.net     A  IP_DU_VPS
 parthenon.byimad.net  A  IP_DU_VPS
+agora.byimad.net      A  IP_DU_VPS
 ```
 
 ## 2. Réseau partagé (une fois)
@@ -101,6 +104,7 @@ toucher aux autres. Les trois workflows existent déjà :
 | Repo | Workflow | Déclencheur | Ce qu'il déploie |
 |------|----------|-------------|------------------|
 | **byimad** | `.github/workflows/deploy.yml` | push `main` | SSH → `git pull` + `up -d` de l'edge et du portail |
+| **byimad** | `.github/workflows/agora.yml` | push `main` (chemins `agora/**`) | build Quartz du wiki puis `rsync` → `/opt/agora-site` |
 | **Moires** | `.github/workflows/deploy.yml` | fin de CI OK sur `main` (ou manuel) | SSH → `git reset --hard` + `up -d --build` de son stack |
 | **Parthenon** | `.github/workflows/release.yml` | tag `vX.Y.Z` | `scp` des installeurs puis des manifestes dans `/opt/parthenon-releases` |
 
@@ -130,3 +134,13 @@ sudo usermod -aG docker deploy
 byimad et Moires font un `git pull`/`reset` : leur repo doit déjà être cloné sur
 le VPS (voir §3 et §4). Parthenon n'a besoin que d'un accès écriture à
 `/opt/parthenon-releases`.
+
+Pour Agora (une fois) : le dossier cible doit exister et appartenir à
+l'utilisateur de déploiement **avant** le premier lancement de l'edge (sinon
+Docker le crée en root au montage du volume et le `rsync` de la CI échoue),
+et `rsync` doit être installé sur le VPS :
+
+```bash
+sudo mkdir -p /opt/agora-site && sudo chown deploy:deploy /opt/agora-site
+sudo apt-get install -y rsync
+```

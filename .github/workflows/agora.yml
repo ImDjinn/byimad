@@ -1,0 +1,63 @@
+# Construit le wiki Agora (Quartz + agora/content) et pousse le site statique
+# dans /opt/agora-site sur le VPS, servi par l'edge (proxy/Caddyfile).
+# Prérequis VPS (une fois) : /opt/agora-site accessible en écriture à
+# l'utilisateur de déploiement, rsync installé. Voir DEPLOY.md.
+name: Deploy Agora
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "agora/**"
+      - ".github/workflows/agora.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-agora
+  cancel-in-progress: true
+
+env:
+  # Tag Quartz épinglé : build reproductible. Monter de version = changer ce
+  # tag et vérifier que agora/quartz.config.ts + quartz.layout.ts (copies
+  # adaptées des fichiers par défaut de ce tag) compilent toujours.
+  QUARTZ_REF: v4.5.2
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Assembler Quartz + contenu
+        run: |
+          git clone --depth 1 --branch "$QUARTZ_REF" https://github.com/jackyzha0/quartz.git "$RUNNER_TEMP/quartz"
+          cp agora/quartz.config.ts agora/quartz.layout.ts "$RUNNER_TEMP/quartz/"
+          cp agora/styles/custom.scss "$RUNNER_TEMP/quartz/quartz/styles/custom.scss"
+          rm -rf "$RUNNER_TEMP/quartz/content"
+          cp -r agora/content "$RUNNER_TEMP/quartz/content"
+
+      - name: Build
+        working-directory: ${{ runner.temp }}/quartz
+        run: |
+          npm ci
+          npx quartz build
+
+      - name: Déployer sur le VPS (rsync)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/vps_key
+          chmod 600 ~/.ssh/vps_key
+          # accept-new : même TOFU que deploy.yml. --delete : le dossier sur le
+          # VPS est un miroir exact du build, rien d'autre n'y écrit.
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/vps_key -o StrictHostKeyChecking=accept-new -p $VPS_PORT" \
+            "$RUNNER_TEMP/quartz/public/" "$VPS_USER@$VPS_HOST:/opt/agora-site/"

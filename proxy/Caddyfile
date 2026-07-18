@@ -12,6 +12,21 @@
 	}
 }
 
+# Agora — wiki public (notes Obsidian → build Quartz). Fichiers statiques
+# poussés par la CI byimad (workflow agora.yml) dans /opt/agora-site.
+# try_files : Quartz émet note.html mais lie /note (URLs propres).
+agora.byimad.net {
+	encode gzip zstd
+	import secure
+	root * /srv/agora-site
+	try_files {path} {path}.html {path}/ =404
+	handle_errors {
+		rewrite * /404.html
+		file_server
+	}
+	file_server
+}
+
 # Portail byimad.net → conteneur byimad-site (stack ./.. autonome).
 byimad.net {
 	encode gzip zstd
